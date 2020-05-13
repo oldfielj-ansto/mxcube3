@@ -1,20 +1,29 @@
 from flask import jsonify
 
-from mxcube3 import server
 from mxcube3.core import beamlineutils
+from mxcube3.core import loginutils
+from mxcube3.core import models
 
+from flask_restx import Namespace, Resource
 
-@server.route("/mxcube/api/v0.1/detector", methods=["GET"])
-@server.restrict
-def get_detector_info():
-    """
-    Retrieves general info from the detector.
-        :response Content-type: application/json, example:
-            {'filetype': 'h5'},
-        :statuscode: 200: no error
-        :statuscode: 409: error
-    """
+ns = Namespace(
+    "detector",
+    description="Detetor operations",
+    path="/mxcube/api/v0.1/detector",
+    decorators=[loginutils.valid_login_only]
+)
 
-    resp = jsonify({"fileSuffix": beamlineutils.get_detector_info()})
-    resp.status_code = 200
-    return resp
+file_suffix_model = models.register_model(ns, models.FileSuffixModel)
+
+@ns.route("/")
+@ns.response(409, "on error")
+class CameraResource(Resource):
+    @ns.marshal_with(file_suffix_model)
+    @ns.produces("application/json")
+    def get(self):
+        """
+        Retrieves general info from the detector.
+            example:
+                {"filetype": "h5"},
+        """
+        return {"fileSuffix": beamlineutils.get_detector_info()}, 200

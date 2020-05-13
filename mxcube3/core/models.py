@@ -58,3 +58,56 @@ ClickPositionModel = Model("ClickPositionModel",{
 CentringMethodModel = Model("CentringMethodModel", {
     "centringMethod": fields.String(readonly=True, description="Centring method"),
 })
+
+WorkflowModel = Model("WorkflowModel", {
+    "wfname": fields.String(readonly=True, description="Workflow name"),
+    "wfpath": fields.String(readonly=True, description="Workflow path"),
+    "requires": fields.List(fields.String)
+})
+
+WorkflowListModel = Model("WorkflowListModel", {
+    "*": fields.Wildcard(fields.Nested(WorkflowModel), description="Workflow name")
+})
+
+WorkflowsModel = Model("WorkflowsModel", {
+    "workflows": fields.Nested(WorkflowListModel)
+})
+
+SampleChangerCapacityPairModel = Model("SampleChangerCapacityPairModel", {
+    "num_baskets": fields.Integer(readonly=True, description="Number of baskets in sample changer"),
+    "num_samples": fields.Integer(readonly=True, description="Number of samples per basket"),
+})
+
+SampleChangerCapacityModel = Model("SampleChangerCapacityModel",{
+    "capacity": fields.Nested(SampleChangerCapacityPairModel),
+})
+
+SampleChangerSampleLocationModel = Model("SampleChangerSampleLocationModel",{
+    "location": fields.String(readonly=True, description="Sample location"),
+    "sampleID": fields.String(readonly=True, description="Sample ID"),
+})
+
+SampleChangerStateModel = Model("SampleChangerStateModel",{
+    "state": fields.String(readonly=True, description="Sample changer state (READY, BUSY, UNKNOWN)")
+})
+
+SampleChangerLoadedSampleModel = Model("SampleChangerLoadedSampleModel",{
+    "address": fields.String(readonly=True, description="Loaded sample address, sperated with :"),
+    "barcode": fields.String(readonly=True, description="Loaded sample barcode"),
+})
+
+UserModel = Model("User", {
+    "loginID": fields.String(readonly=True, description="User name"),
+    "host": fields.String(readonly=True, description="hostname"),
+    "sid": fields.String(readonly=True, description="Session ID"),
+    "operator": fields.Boolean(readonly=True, description="Is user operator"),
+    "name": fields.String(readonly=True, description="Full name"),
+    "requestsControl": fields.Boolean(readonly=True, description="Is the user requsting control"),
+    "message": fields.String(readonly=True, description="Chat message"),
+    "socketio_sid": fields.String(readonly=True, description="Session ID"),
+    "limsData": fields.Raw(readonly=True, description="User LIMS data")
+})
+
+FileSuffixModel = Model("FileSuffixModel",{
+    "fileSuffix": fields.String(readonly=True, description="File suffix"),
+})

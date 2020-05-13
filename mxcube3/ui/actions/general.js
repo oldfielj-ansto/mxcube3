@@ -97,7 +97,7 @@ export function getInitialState() {
         'Content-type': 'application/json'
       }
     });
-    const beamInfo = fetch('mxcube/api/v0.1/beam/info', {
+    const beamInfo = fetch('mxcube/api/v0.1/beamline/beam', {
       method: 'GET',
       credentials: 'include',
       headers: {

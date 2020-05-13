@@ -10,83 +10,105 @@ from flask import (
     copy_current_request_context,
 )
 
+from flask_restx import Namespace, Resource, fields
 
 from mxcube3 import socketio
 from mxcube3 import mxcube
-from mxcube3 import server
 
 from mxcube3 import blcontrol
 from mxcube3.core import loginutils
+from mxcube3.core import models
 
+ns = Namespace(
+    "remoteaccess",
+    description="Sample view operations",
+    path="/mxcube/api/v0.1/ra/",
+    decorators=[loginutils.valid_login_only]
+)
 
-@server.route("/mxcube/api/v0.1/ra/request_control", methods=["POST"])
-@server.restrict
-def request_control():
-    """
-    """
+user_model = models.register_model(ns, models.UserModel)
 
-    @copy_current_request_context
-    def handle_timeout_gives_control(sid, timeout=30):
-        gevent.sleep(timeout)
+@ns.route("/request_control")
+class RequestControlResource(Resource):
+    @ns.expect(user_model)
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def post(self):
+        """
+        Request control
+        """
 
-        if mxcube.TIMEOUT_GIVES_CONTROL:
-            user = loginutils.get_user_by_sid(sid)
+        @copy_current_request_context
+        def handle_timeout_gives_control(sid, timeout=30):
+            gevent.sleep(timeout)
 
-            # Pass control to user if still waiting
-            if user.get("requestsControl"):
-                toggle_operator(sid, "Timeout expired, you have control")
+            if mxcube.TIMEOUT_GIVES_CONTROL:
+                user = loginutils.get_user_by_sid(sid)
 
-    data = request.get_json()
-    remote_addr = loginutils.remote_addr()
+                # Pass control to user if still waiting
+                if user.get("requestsControl"):
+                    toggle_operator(sid, "Timeout expired, you have control")
 
-    # Is someone already asking for control
-    for observer in loginutils.get_observers():
-        if observer["requestsControl"] and observer["host"] != remote_addr:
-            msg = "Another user is already asking for control"
-            return make_response(msg, 409)
+        data = ns.payload
+        remote_addr = loginutils.remote_addr()
 
-    user = loginutils.get_user_by_sid(session.sid)
+        # Is someone already asking for control
+        for observer in loginutils.get_observers():
+            if observer["requestsControl"] and observer["host"] != remote_addr:
+                msg = "Another user is already asking for control"
+                return make_response(msg, 409)
 
-    user["name"] = data["name"]
-    user["requestsControl"] = data["control"]
-    user["message"] = data["message"]
+        user = loginutils.get_user_by_sid(session.sid)
 
-    observers = loginutils.get_observers()
-    gevent.spawn(handle_timeout_gives_control, session.sid, timeout=10)
+        user["name"] = data["name"]
+        user["requestsControl"] = data["control"]
+        user["message"] = data["message"]
 
-    socketio.emit("observersChanged", observers, namespace="/hwr")
+        observers = loginutils.get_observers()
+        gevent.spawn(handle_timeout_gives_control, session.sid, timeout=10)
 
-    return make_response("", 200)
+        socketio.emit("observersChanged", observers, namespace="/hwr")
 
-
-@server.route("/mxcube/api/v0.1/ra/take_control", methods=["POST"])
-@server.restrict
-def take_control():
-    """
-    """
-    # Already master do nothing
-    if loginutils.is_operator(session.sid):
         return make_response("", 200)
 
-    # Not inhouse user so not allowed to take control by force,
-    # return error code
-    if not session["loginInfo"]["loginRes"]["Session"]["is_inhouse"]:
-        return make_response("", 409)
 
-    toggle_operator(session.sid, "You were given control")
+@ns.route("/take_control")
+class TakeControlResource(Resource):
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def post(self):
+        """
+        Take control
+        """
+        # Already master do nothing
+        if loginutils.is_operator(session.sid):
+            return make_response("", 200)
 
-    return make_response("", 200)
+        # Not inhouse user so not allowed to take control by force,
+        # return error code
+        if not session["loginInfo"]["loginRes"]["Session"]["is_inhouse"]:
+            return make_response("", 409)
+
+        toggle_operator(session.sid, "You were given control")
+
+        return make_response("", 200)
 
 
-@server.route("/mxcube/api/v0.1/ra/give_control", methods=["POST"])
-@server.restrict
-def give_control():
-    """
-    """
-    sid = request.get_json().get("sid")
-    toggle_operator(sid, "You were given control")
+@ns.route("/give_control")
+class GiveControlResource(Resource):
+    @ns.expect(ns.model("SessionIDModel", {
+        "sid": fields.String(readonly=True, description="Session ID"),
+    }))
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def post(self):
+        """
+        Give control
+        """
+        sid = ns.payload.get("sid")
+        toggle_operator(sid, "You were given control")
 
-    return make_response("", 200)
+        return make_response("", 200)
 
 
 def toggle_operator(new_op_sid, message):
@@ -122,47 +144,62 @@ def remain_observer(observer_sid, message):
     )
 
 
-@server.route("/mxcube/api/v0.1/ra", methods=["GET"])
-@server.restrict
-def observers():
-    """
-    """
-    data = {
-        "observers": loginutils.get_observers(),
-        "sid": session.sid,
-        "master": loginutils.is_operator(session.sid),
-        "observerName": loginutils.get_observer_name(),
-        "allowRemote": mxcube.ALLOW_REMOTE,
-        "timeoutGivesControl": mxcube.TIMEOUT_GIVES_CONTROL,
-    }
+@ns.route("/")
+class ObserversResource(Resource):
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def get(self):
+        """
+        List all observers
+        """
+        data = {
+            "observers": loginutils.get_observers(),
+            "sid": session.sid,
+            "master": loginutils.is_operator(session.sid),
+            "observerName": loginutils.get_observer_name(),
+            "allowRemote": mxcube.ALLOW_REMOTE,
+            "timeoutGivesControl": mxcube.TIMEOUT_GIVES_CONTROL,
+        }
 
-    return jsonify(data=data)
-
-
-@server.route("/mxcube/api/v0.1/ra/allow_remote", methods=["POST"])
-@server.restrict
-def allow_remote():
-    """
-    """
-    allow = request.get_json().get("allow")
-
-    if mxcube.ALLOW_REMOTE and allow == False:
-        socketio.emit("forceSignoutObservers", {}, namespace="/hwr")
-
-    mxcube.ALLOW_REMOTE = allow
-
-    return Response(status=200)
+        return jsonify(data=data)
 
 
-@server.route("/mxcube/api/v0.1/ra/timeout_gives_control", methods=["POST"])
-@server.restrict
-def timeout_gives_control():
-    """
-    """
-    control = request.get_json().get("timeoutGivesControl")
-    mxcube.TIMEOUT_GIVES_CONTROL = control
+@ns.route("/allow_remote")
+class AllowRemoteResource(Resource):
+    @ns.expect(ns.model("AllowRemoteModel", {
+        "allow": fields.Boolean(readonly=True, description="Allow remote"),
+    }))
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def post(self):
+        """
+        Enable remote
+        """
+        allow = ns.payload.get("allow")
 
-    return Response(status=200)
+        if mxcube.ALLOW_REMOTE and allow == False:
+            socketio.emit("forceSignoutObservers", {}, namespace="/hwr")
+
+        mxcube.ALLOW_REMOTE = allow
+
+        return Response(status=200)
+
+
+@ns.route("/timeout_gives_control")
+class TimeoutControlResource(Resource):
+    @ns.expect(ns.model("TimeoutGivesControlModel", {
+        "timeoutGivesControl": fields.Boolean(readonly=True, description="Timeout gives control"),
+    }))
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def post(self):
+        """
+        Enable timeout gives control
+        """
+        control = ns.payload.get("timeoutGivesControl")
+        mxcube.TIMEOUT_GIVES_CONTROL = control
+
+        return Response(status=200)
 
 
 def observer_requesting_control():
@@ -174,46 +211,63 @@ def observer_requesting_control():
 
     return observer
 
+@ns.route("/request_control_response")
+class TimeoutControlResource(Resource):
+    @ns.expect(ns.model("GiveControlModel", {
+        "giveControl": fields.Boolean(readonly=True, description="Pass control"),
+        "message": fields.String(readonly=True, description="Reply message"),
+    }))
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def post(self):
+        """
+        Reply to a "reuqest for control" request
+        """
+        data = ns.payload
+        new_op = observer_requesting_control()
 
-@server.route("/mxcube/api/v0.1/ra/request_control_response", methods=["POST"])
-@server.restrict
-def request_control_response():
-    """
-    """
-    data = request.get_json()
-    new_op = observer_requesting_control()
+        # Request was denied
+        if not data["giveControl"]:
+            remain_observer(new_op["sid"], data["message"])
+        else:
+            toggle_operator(new_op["sid"], data["message"])
 
-    # Request was denied
-    if not data["giveControl"]:
-        remain_observer(new_op["sid"], data["message"])
-    else:
-        toggle_operator(new_op["sid"], data["message"])
+        new_op["requestsControl"] = False
 
-    new_op["requestsControl"] = False
-
-    return make_response("", 200)
-
-
-@server.route("/mxcube/api/v0.1/ra/chat", methods=["POST"])
-@server.restrict
-def append_message():
-    message = request.get_json().get("message", "")
-    sid = request.get_json().get("sid", "")
-
-    if message and sid:
-        loginutils.append_message(message, sid)
-
-    return Response(status=200)
+        return make_response("", 200)
 
 
-@server.route("/mxcube/api/v0.1/ra/chat", methods=["GET"])
-@server.restrict
-def get_all_mesages():
-    return jsonify({"messages": loginutils.get_all_messages()})
+@ns.route("/chat")
+class TimeoutControlResource(Resource):
+    @ns.expect(ns.model("GiveControlModel", {
+        "sid": fields.String(readonly=True, description="Session ID"),
+        "message": fields.String(readonly=True, description="Chat message"),
+    }))
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def post(self):
+        """
+        Post a chat message
+        """
+        message =ns.payload.get("message", "")
+        sid = ns.payload.get("sid", "")
+
+        if message and sid:
+            loginutils.append_message(message, sid)
+
+        return Response(status=200)
+
+    @ns.response(200, "")
+    @ns.produces("application/json")
+    def get(self):
+        """
+        Returns a list of all chat messages
+        """
+        return jsonify({"messages": loginutils.get_all_messages()})
 
 
 @socketio.on("connect", namespace="/hwr")
-@server.ws_restrict
+@loginutils.ws_valid_login_only
 def connect():
     user = loginutils.get_user_by_sid(session.sid)
 
@@ -237,7 +291,7 @@ def connect():
 
 
 @socketio.on("disconnect", namespace="/hwr")
-@server.ws_restrict
+@loginutils.ws_valid_login_only
 def disconnect():
     if (
         loginutils.is_operator(session.sid)
@@ -250,7 +304,7 @@ def disconnect():
 
 
 @socketio.on("setRaMaster", namespace="/hwr")
-@server.ws_restrict
+@loginutils.ws_valid_login_only
 def set_master(data):
     loginutils.emit_pending_events()
 
@@ -258,7 +312,7 @@ def set_master(data):
 
 
 @socketio.on("setRaObserver", namespace="/hwr")
-@server.ws_restrict
+@loginutils.ws_valid_login_only
 def set_observer(data):
     name = data.get("name", "")
     observers = loginutils.get_observers()

@@ -14,8 +14,7 @@ def test_beamline_get_all_attribute(client):
     Checks that the data returned has the right structure and if "all"
     beamline attributes are at least present
     """
-
-    resp = client.get("/mxcube/api/v0.1/beamline")
+    resp = client.get("/mxcube/api/v0.1/beamline/")
     data = json.loads(resp.data)
 
     actual = list(data.get("attributes").keys())
@@ -116,13 +115,13 @@ def test_get_beam_info(client):
     Tests retrieval of information regarding the beam, and that the data is
     returned on the expected format
     """
-    resp = client.get("/mxcube/api/v0.1/beam/info")
+    resp = client.get("/mxcube/api/v0.1/beamline/beam")
     data = json.loads(resp.data)
 
-    assert isinstance(data["currentAperture"], int)
+    assert isinstance(data["currentAperture"], float)
     assert len(data["apertureList"]) >= 0
-    assert isinstance(data["position"][0], int)
-    assert isinstance(data["position"][1], int)
+    assert isinstance(data["position"][0], float)
+    assert isinstance(data["position"][1], float)
     assert isinstance(data["size_x"], float)
     assert isinstance(data["size_y"], float)
 
@@ -131,7 +130,6 @@ def test_get_data_path(client):
     """
     Retrieve data path, this is specific for each beamline.
     """
-
     resp = client.get("/mxcube/api/v0.1/beamline/datapath")
     data = json.loads(resp.data)
     assert isinstance(data["path"], unicode)

@@ -134,7 +134,14 @@ if not server.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         doc='/doc/',
     )
 
-    api.add_namespace(sampleview.ns, "/mxcube/api/v0.1/sampleview")
+    api.add_namespace(sampleview.ns)
+    api.add_namespace(workflow.ns)
+    api.add_namespace(samplechanger.ns)
+    api.add_namespace(ra.ns)
+    api.add_namespace(beamline.ns)
+    api.add_namespace(detector.ns)
+    api.add_namespace(diffractometer.ns)
+    api.add_namespace(login.ns)
 
     msg = "MXCuBE 3 initialized, it took %.1f seconds" % (time.time() - t0)
     logging.getLogger("HWR").info(msg)

@@ -18,7 +18,7 @@ def test_get_phase_list(client):
     resp = client.get("/mxcube/api/v0.1/diffractometer/phaselist")
     data = json.loads(resp.data)
 
-    assert isinstance(data["current_phase"], list)
+    assert isinstance(data["phase_list"], list)
 
 
 def test_get_phase(client):
@@ -28,7 +28,7 @@ def test_get_phase(client):
     resp = client.get("/mxcube/api/v0.1/diffractometer/phaselist")
     data = json.loads(resp.data)
 
-    phase_list = data["current_phase"]
+    phase_list = data["phase_list"]
 
     resp = client.get("/mxcube/api/v0.1/diffractometer/phase")
     data = json.loads(resp.data)
@@ -52,7 +52,7 @@ def test_set_phase(client):
 
     resp = client.get("/mxcube/api/v0.1/diffractometer/phaselist")
     data = json.loads(resp.data)
-    phase_list = data["current_phase"]
+    phase_list = data["phase_list"]
 
     new_phase = phase_list[random.randint(0, len(phase_list) - 1)]
 
@@ -102,7 +102,7 @@ def test_get_aperture(client):
     resp = client.get("/mxcube/api/v0.1/diffractometer/aperture")
     data = json.loads(resp.data)
 
-    assert isinstance(data["currentAperture"], int)
+    assert isinstance(data["currentAperture"], float)
     assert isinstance(data["apertureList"], list)
 
 

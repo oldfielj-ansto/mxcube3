@@ -17,7 +17,7 @@ from mxcube3.core import models
 
 ns = Namespace(
     "sampleview",
-    description="SampleView operations",
+    description="Sample view operations",
     path="/mxcube/api/v0.1/sampleview",
     decorators=[loginutils.valid_login_only]
 )
@@ -35,7 +35,6 @@ centring_method_model = models.register_model(ns, models.CentringMethodModel)
 
 @ns.route("/camera/subscribe")
 class CameraSubscribeResource(Resource):
-    @ns.doc("Subscribe to camera")
     @ns.response(200, "MJPEG stream")
     @ns.produces('multipart/x-mixed-replace; boundary="!>"')
     def get(self):
@@ -59,7 +58,6 @@ class CameraSubscribeResource(Resource):
 
 @ns.route("/camera/save")
 class CameraSaveResource(Resource):
-    @ns.doc("Save camera snapshot")
     @ns.response(200, "True on success False on failure")
     @ns.produces("String True or False")
     def put(self):
@@ -78,16 +76,20 @@ class CameraSaveResource(Resource):
 @ns.route("/camera")
 @ns.response(409, "on error")
 class CameraResource(Resource):
-    @ns.doc("Get information about the current sampleview, image size, beam center")
     @ns.marshal_with(sample_view_model)
     def get(self):
+        """
+        Get information about the current sampleview, image size, beam center
+        """
         data = beamlineutils.get_viewport_info()
         return data, 200
 
-    @ns.doc("Set the sample view video image size")
     @ns.expect(camera_width_height_model)
     @ns.marshal_with(sample_view_model)
     def post(self):
+        """
+        Set the sample view video image size
+        """
         params = ns.payload
         res = sviewutils.set_image_size(params["width"], params["height"])
         return res, 200
@@ -114,7 +116,6 @@ class CentringResource(Resource):
 @ns.route("/shapes")
 @ns.response(409, "Shape not found")
 class ShapesResource(Resource):
-    @ns.doc("Get all registred shapes")
     @ns.response(200, "Shapes object")
     @ns.produces("application/json {shapes: sid1: {...}, sidN: {...}}")
     def get(self):
@@ -127,7 +128,6 @@ class ShapesResource(Resource):
         resp.status_code = 200
         return resp
 
-    @ns.doc("Update or add a set of shapes, contained in a list")
     @ns.response(200, "List with updated shape obejcts")
     @ns.produces("application/json [s1, ... sN}")
     def post(self):
@@ -146,7 +146,6 @@ class ShapesResource(Resource):
 @ns.route("/shapes/<sid>")
 @ns.response(409, "Shape not found")
 class ShapeResource(Resource):
-    @ns.doc("Retrieve shape with id <sid>")
     @ns.response(200, "Shape obejcts")
     @ns.produces("application/json")
     def get(self, sid):
@@ -161,11 +160,13 @@ class ShapeResource(Resource):
             return resp
         else:
             return Response(status=409)
-    
-    @ns.doc("Update result for a cell in the grid with id <sid>")
+
     @ns.response(200, "")
     @ns.produces("application/json")
     def post(self, sid):
+        """
+        Update result for a cell in the grid with id <sid>
+        """
         params = request.get_json()
 
         cell_number = params.get("cell", 0)
@@ -174,7 +175,6 @@ class ShapeResource(Resource):
         sviewutils.shape_add_cell_result(sid, cell_number, result)
         return Response(status=200)
 
-    @ns.doc("Delete shape with id <sid>")
     @ns.response(200, "")
     @ns.produces("application/json")
     def delete(self, sid):
@@ -188,7 +188,6 @@ class ShapeResource(Resource):
 @ns.route("/shapes/rotate_to")
 @ns.response(409, "Could not rotate to position defined by shape")
 class RotateToShapeResource(Resource):
-    @ns.doc("Rotate Omega to the position where the given shape was defined")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
@@ -211,11 +210,13 @@ class RotateToShapeResource(Resource):
 @ns.route("/zoom")
 @ns.response(409, "Could not change zoom")
 class ZoomResource(Resource):
-    @ns.doc("Change zoom")
     @ns.expect(zoom_level_model)
     @ns.marshal_with(pixels_per_mm_model)
     @loginutils.require_control
     def put(self):
+        """
+        Change zoom
+        """
         params = ns.payload
         pos = params.get("level", 0)
 
@@ -226,11 +227,13 @@ class ZoomResource(Resource):
 @ns.route("/backlighton")
 @ns.response(409, "Could not turn on back light")
 class BackLightOnResource(Resource):
-    @ns.doc("Turn backlight on")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Turn backlight on
+        """
         sviewutils.back_light_on()
         return Response(status=200)
 
@@ -238,22 +241,26 @@ class BackLightOnResource(Resource):
 @ns.route("/backlightoff")
 @ns.response(409, "Could not turn off back light")
 class BackLightOffResource(Resource):
-    @ns.doc("Turn backlight off")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Turn backlight off
+        """
         sviewutils.back_light_off()
         return Response(status=200)
 
 @ns.route("/frontlighton")
 @ns.response(409, "Could not turn on front light")
 class FrontLightOnResource(Resource):
-    @ns.doc("Turn frontlight on")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Turn frontlight on
+        """
         sviewutils.front_light_on()
         return Response(status=200)
 
@@ -261,11 +268,13 @@ class FrontLightOnResource(Resource):
 @ns.route("/frontlightoff")
 @ns.response(409, "Could not turn off front light")
 class FrontLightOffResource(Resource):
-    @ns.doc("Turn frontlight off")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Turn frontlight off
+        """
         sviewutils.front_light_off()
         return Response(status=200)
 
@@ -274,11 +283,13 @@ class FrontLightOffResource(Resource):
 @ns.param('mot_id', 'Id of motor to move')
 @ns.param('newpos', 'Position to move to')
 class MoveMotorResource(Resource):
-    @ns.doc("Move motor with <mot_id> to new position <newpos>")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self, motid, newpos):
+        """
+        Move motor with <mot_id> to new position <newpos>
+        """
         try:
             sviewutils.move_motor(motid, newpos)
         except Exception as ex:
@@ -295,10 +306,12 @@ class MoveMotorResource(Resource):
 @ns.param('mot_id', 'Id of motor')
 @ns.response(409, "On error")
 class MotorResource(Resource):
-    @ns.doc("Get status, sate and position, of motor with id <motid>")
     @ns.response(200, "")
     @ns.produces("application/json")
     def get(self, motid):
+        """
+        Get status, sate and position, of motor with id <motid>
+        """
         try:
             ret = sviewutils.get_status_of_id(motid)
             resp = jsonify(ret)
@@ -310,45 +323,53 @@ class MotorResource(Resource):
 
 @ns.route("/centring/startauto")
 class StartAutoCentringResource(Resource):
-    @ns.doc("Start automatic centring")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Start automatic centring
+        """
         sviewutils.start_auto_centring()
         return Response(status=200)
 
 
 @ns.route("/centring/start3click")
 class StartManualCentringResource(Resource):
-    @ns.doc("Start 3-click centring")
     @ns.produces("application/json")
     @ns.marshal_with(clicks_left_model)
     @loginutils.require_control
     def put(self):
+        """
+        Start 3-click centring
+        """
         data = sviewutils.start_manual_centring()
         return data, 200
 
 
 @ns.route("/centring/abort")
 class AbortCentringResource(Resource):
-    @ns.doc("Abort current centring")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Abort current centring
+        """
         sviewutils.abort_centring()
         return Response(status=200)
 
 
 @ns.route("/centring/click")
 class CentringClickResource(Resource):
-    @ns.doc("Abort current centring")
     @ns.produces("application/json")
     @ns.expect(click_position_model)
     @ns.marshal_with(clicks_left_model)
     @loginutils.require_control
     def put(self):
+        """
+        Abort current centring
+        """
         pos = ns.payload.get("clickPos", None)
         data = sviewutils.centring_handle_click(pos["x"], pos["y"])
         return data, 200
@@ -356,34 +377,40 @@ class CentringClickResource(Resource):
 
 @ns.route("/centring/accept")
 class AcceptCentringResource(Resource):
-    @ns.doc("Accept current centring")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Accept current centring
+        """
         blcontrol.beamline.diffractometer.accept_centring()
         return Response(status=200)
 
 
 @ns.route("/centring/reject")
 class AcceptCentringResource(Resource):
-    @ns.doc("Reject current centring")
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Reject current centring
+        """
         sviewutils.reject_centring()
         return Response(status=200)
 
 
 @ns.route("/centring/centring_method")
 class SetCentringMethodResource(Resource):
-    @ns.doc("Set defualt centring method: MANUAL, LOOP, FULLY_AUTOMATIC, XRAY")
     @ns.expect(centring_method_model)
     @ns.response(200, "")
     @ns.produces("application/json")
     @loginutils.require_control
     def put(self):
+        """
+        Set defualt centring method: MANUAL, LOOP, FULLY_AUTOMATIC, XRAY
+        """
         method = ns.payload.get("centringMethod", None)
         sviewutils.set_centring_method(method)
         return Response(status=200)
@@ -391,12 +418,14 @@ class SetCentringMethodResource(Resource):
 
 @ns.route("/centring/movetobeam")
 class MoveToBeamResource(Resource):
-    @ns.doc("Move position to beam")
     @ns.produces("application/json")
     @ns.response(200, "")
     @ns.expect(click_position_model)
     @loginutils.require_control
     def put(self):
+        """
+        Move position to beam
+        """
         pos = ns.payload.get("clickPos", None)
         sviewutils.move_to_beam(pos["x"], pos["y"])
         return Response(status=200)
