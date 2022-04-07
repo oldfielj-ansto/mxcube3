@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-
 import { Row, Col, Stack, Container } from 'react-bootstrap';
-
 import SampleImage from '../components/SampleView/SampleImage';
 import MotorControl from '../components/SampleView/MotorControl';
 import ApertureInput from '../components/SampleView/ApertureInput';
+import SSXChipControl from '../components/SSXChip/SSXChipControl';
 import ContextMenu from '../components/SampleView/ContextMenu';
 import * as SampleViewActions from '../actions/sampleview';
 import * as GeneralActions from '../actions/general';
@@ -78,7 +77,6 @@ class SampleViewContainer extends Component {
         />
       </div>
     );
-
     return (
         <Stack>
           <Row>
@@ -93,6 +91,7 @@ class SampleViewContainer extends Component {
                 style={{ paddingRight: '1px', paddingLeft: '0.7em' }}
               >
                 {apertureControl}
+                <SSXChipControl />
                 <MotorControl
                   save={this.props.sendSetAttribute}
                   saveStep={setStepSize}

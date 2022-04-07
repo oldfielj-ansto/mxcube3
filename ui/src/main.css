@@ -2,6 +2,10 @@
     width: auto !important;
 }
 
+#test {
+  min-width: fit-content;
+}
+
 .modal-dialog {
     margin: 130px auto;
 }

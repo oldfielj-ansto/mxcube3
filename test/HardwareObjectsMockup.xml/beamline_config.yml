@@ -43,6 +43,7 @@ _objects:
     - sample_view: sample_view.xml
     - queue_manager: queue.xml
     - queue_model: queue_model.xml
+    - task_manager: task_manager.xml
 
     # Procedures:
     - beamline_actions: beamline_actions.xml
