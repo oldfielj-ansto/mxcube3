@@ -123,15 +123,14 @@ GphlWorkflow = connect(state => {
   const subdir = selector(state, 'subdir');
   const strategy_name = selector(state, 'strategy_name');
   const fileSuffix = state.taskForm.fileSuffix === 'h5' ? '_master.h5' : 'cbf';
-  // let position = state.taskForm.pointID === '' ? 'PX' : state.taskForm.pointID;
-  // if (typeof position === 'object') {
-  //   const vals = Object.values(position).sort();
-  //   position = `[${vals}]`;
-  // }
+
+  const { type } = state.taskForm.taskData;
+  const limits = state.taskForm.defaultParameters[type.toLowerCase()].limits;
+
   return {
     path: `${state.login.rootPath}/${subdir}`,
     wfname: state.taskForm.taskData.parameters.wfname,
-    acqParametersLimits: state.taskForm.acqParametersLimits,
+    acqParametersLimits: limits,
     suffix: fileSuffix,
     strategy_name,
     initialValues: {

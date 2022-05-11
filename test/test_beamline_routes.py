@@ -14,25 +14,44 @@ def test_beamline_get_all_attribute(client):
     Checks that the data returned has the right structure and if "all"
     beamline attributes are at least present
     """
+    import pdb
+    pdb.set_trace()
+
     resp = client.get("/mxcube/api/v0.1/beamline/")
     data = json.loads(resp.data)
 
     actual = list(data.get("attributes").keys())
 
     expected = [
-        "beamstop",
-        "capillary",
-        "cryo",
-        "detector",
-        "detector_distance",
-        "energy",
-        "fast_shutter",
-        "flux",
-        "machine_info",
-        "resolution",
-        "safety_shutter",
-        "transmission",
-        "wavelength",
+        'backlight',
+        'backlight_switch',
+        'beam',
+        'beamstop',
+        'beamstop_alignemnt_x',
+        'capillary',
+        'detector',
+        'detector_distance',
+        'diffractometer',
+        'energy',
+        'energy.wavelength',
+        'fast_shutter',
+        'flux',
+        'frontlight',
+        'frontlight_switch',
+        'kappa',
+        'kappa_phi',
+        'machine_info',
+        'microdiff_light',
+        'omega',
+        'phix',
+        'phiy',
+        'phiz',
+        'resolution',
+        'safety_shutter',
+        'sampx',
+        'sampy',
+        'transmission',
+        'zoom'
     ]
 
     assert isinstance(data["attributes"], dict)
@@ -49,6 +68,8 @@ def test_beamline_get_attribute(client):
     the data returned at-least contain a minimal set of keys that make up a
     'beamline attribute'
     """
+    import pdb
+    pdb.set_trace()
 
     bl_attrs = [
         "safety_shutter",

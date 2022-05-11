@@ -125,11 +125,14 @@ Workflow = connect(state => {
     fname = `${prefix}_[RUN#]_[IMG#]`;
   }
 
+  const { type } = state.taskForm.taskData;
+  const limits = state.taskForm.defaultParameters[type.toLowerCase()].limits;
+
   return {
     path: `${state.login.rootPath}/${subdir}`,
     filename: fname,
     wfname: state.taskForm.taskData.parameters.wfname,
-    acqParametersLimits: state.taskForm.acqParametersLimits,
+    acqParametersLimits: limits,
     suffix: fileSuffix,
     initialValues: {
       ...state.taskForm.taskData.parameters,

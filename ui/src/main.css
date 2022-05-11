@@ -1,5 +1,6 @@
 .popover {
     width: auto !important;
+    z-index: 1040;
 }
 
 #test {
@@ -7,7 +8,7 @@
 }
 
 .modal-dialog {
-    margin: 130px auto;
+    margin: 50px auto;
 }
 
 #loading {

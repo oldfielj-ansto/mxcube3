@@ -91,7 +91,13 @@ class SampleViewContainer extends Component {
                 style={{ paddingRight: '1px', paddingLeft: '0.7em' }}
               >
                 {apertureControl}
-                <SSXChipControl />
+                <SSXChipControl
+                  showForm={this.props.showForm}
+                  sampleID={sampleID}
+                  sampleData={this.props.sampleList[sampleID]}
+                  defaultParameters={this.props.defaultParameters}
+                  groupFolder={this.props.groupFolder}
+                />
                 <MotorControl
                   save={this.props.sendSetAttribute}
                   saveStep={setStepSize}
@@ -113,6 +119,7 @@ class SampleViewContainer extends Component {
                   availableMethods={this.props.availableMethods}
                   showForm={this.props.showForm}
                   sampleID={sampleID}
+                  taskForm={this.props.taskForm}
                   sampleData={this.props.sampleList[sampleID]}
                   defaultParameters={this.props.defaultParameters}
                   imageRatio={imageRatio * sourceScale}
@@ -177,6 +184,7 @@ function mapStateToProps(state) {
     proposal: state.login.selectedProposal,
     remoteAccess: state.remoteAccess,
     uiproperties: state.uiproperties,
+    taskForm: state.taskForm
   };
 }
 

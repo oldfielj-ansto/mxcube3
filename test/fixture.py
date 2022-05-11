@@ -10,8 +10,6 @@ import os
 import json
 import copy
 
-from flask_socketio import SocketIOTestClient
-
 from input_parameters import (
     test_sample_1,
     test_sample_5,
@@ -26,7 +24,9 @@ MXCUBE_ROOT = os.path.abspath(
 sys.path.append(MXCUBE_ROOT)
 sys.path.append("./")
 
-from mxcube3 import server, socketio
+
+from mxcubecore import HardwareRepository
+from mxcube3 import main
 
 _SIO_TEST_CLIENT = None
 
@@ -34,16 +34,19 @@ _SIO_TEST_CLIENT = None
 @pytest.fixture
 def client():
     global _SIO_TEST_CLIENT
-    server.config["TESTING"] = True
 
-    client = server.test_client()
+    HardwareRepository.uninit_hardware_repository()
+    server, _ = main()
+    server.flask.config["TESTING"] = True
+
+    client = server.flask.test_client()
 
     data = json.dumps({"proposal": "idtest0", "password": "sUpErSaFe"})
 
-    client.post("/mxcube/api/v0.1/login", data=data, content_type="application/json")
+    client.post("/mxcube/api/v0.1/login/", data=data, content_type="application/json")
 
     resp = client.post(
-        "/mxcube/api/v0.1/queue",
+        "/mxcube/api/v0.1/queue/",
         data=json.dumps([test_sample_1]),
         content_type="application/json",
     )
@@ -51,16 +54,16 @@ def client():
     assert resp.status_code == 200
 
     resp = client.post(
-        "/mxcube/api/v0.1/queue",
+        "/mxcube/api/v0.1/queue/",
         data=json.dumps([test_sample_5]),
         content_type="application/json",
     )
 
     assert resp.status_code == 200
 
-    _SIO_TEST_CLIENT = socketio.test_client(server)
+    _SIO_TEST_CLIENT = server.flask_socketio.test_client(server)
 
-    resp = client.get("/mxcube/api/v0.1/queue")
+    resp = client.get("/mxcube/api/v0.1/queue/")
 
     assert resp.status_code == 200 and json.loads(resp.data).get("1:05")
 
@@ -70,7 +73,7 @@ def client():
     task_to_add["tasks"][0]["sampleQueueID"] = queue_id
 
     resp = client.post(
-        "/mxcube/api/v0.1/queue",
+        "/mxcube/api/v0.1/queue/",
         data=json.dumps([task_to_add]),
         content_type="application/json",
     )
@@ -79,8 +82,10 @@ def client():
 
     yield client
 
-    client.get("/mxcube/api/v0.1/login/signout")
+    import pdb
+    pdb.set_trace()
 
+    client.get("/mxcube/api/v0.1/login/signout/")
 
 @pytest.fixture
 def add_sample(client):

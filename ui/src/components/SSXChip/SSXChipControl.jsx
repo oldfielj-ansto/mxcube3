@@ -4,22 +4,51 @@ import {
   Button,
   OverlayTrigger,
   Popover,
-  FormControl
 } from 'react-bootstrap';
 import './ssxchipcontrol.css';
-import SSXChip from './SSXChip';
-
-const fabric = window.fabric;
+import SSXChip from './SSXChip.jsx';
 
 export default class SSXChipControl extends React.Component {
   constructor(props) {
     super(props);
+    this.handleAddTask = this.handleAddTask.bind(this);
+  }
+
+  handleAddTask(triggerEvent, event, props, data ) {
+    const { sampleID, sampleData, defaultParameters } = this.props;
+    const wf = {};
+    const sid = [1];
+
+    this.props.showForm(
+      'Generic',
+      [sampleID],
+      {
+        parameters: {
+          ...defaultParameters.ssx_chip_collection,
+          ...wf,
+          prefix: sampleData.defaultPrefix,
+          subdir: `${this.props.groupFolder}${sampleData.defaultSubDir}`,
+          cell_count: 0,
+          numRows: 0,
+          numCols: 0,
+          selection: triggerEvent.props.selection
+        },
+      },
+      sid
+    );
   }
 
   renderChip() {
     return (
-      <Popover id="test" title={<b>Chip</b>}>
-        <SSXChip />
+      <Popover id="test">
+        <Popover.Header>
+          <b>Chip</b>
+        </Popover.Header>
+        <Popover.Body>
+          <SSXChip 
+            onAddTask={this.handleAddTask}
+          />
+        </Popover.Body>
       </Popover>
     );
   }

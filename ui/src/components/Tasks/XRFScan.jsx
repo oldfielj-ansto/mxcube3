@@ -78,7 +78,7 @@ class XRFScan extends React.Component {
             </Row>
             <Row className='mt-3'>
               <InputField
-                propName="countTime"
+                propName="exp_time"
                 type="number"
                 label="Count time (s)"
                 col1="4"
@@ -118,7 +118,7 @@ const selector = formValueSelector('workflow');
 
 XRFScan = connect(state => {
   const subdir = selector(state, 'subdir');
-  const countTime = selector(state, 'countTime');
+  const exp_time = selector(state, 'exp_time');
   const fileSuffix = state.taskForm.fileSuffix === 'h5' ? '_master.h5' : 'cbf';
   let position = state.taskForm.pointID === '' ? 'PX' : state.taskForm.pointID;
   if (typeof position === 'object') {
@@ -126,12 +126,15 @@ XRFScan = connect(state => {
     position = `[${vals}]`;
   }
 
+  const { type } = state.taskForm.taskData;
+  const limits = state.taskForm.defaultParameters[type.toLowerCase()].limits;
+
   return {
     path: `${state.login.rootPath}/${subdir}`,
     filename: state.taskForm.taskData.parameters.fileName,
-    countTime,
+    exp_time,
     wfname: state.taskForm.taskData.parameters.wfname,
-    acqParametersLimits: state.taskForm.acqParametersLimits,
+    acqParametersLimits: limits,
     suffix: fileSuffix,
     initialValues: {
       ...state.taskForm.taskData.parameters,

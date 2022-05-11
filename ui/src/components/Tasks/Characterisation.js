@@ -426,10 +426,13 @@ Characterisation = connect((state) => {
     fname = `${prefix}_[RUN#]_[IMG#]`;
   }
 
+  const { type } = state.taskForm.taskData;
+  const limits = state.taskForm.defaultParameters[type.toLowerCase()].limits;
+
   return {
     path: `${state.login.rootPath}/${subdir}`,
     filename: fname,
-    acqParametersLimits: state.taskForm.acqParametersLimits,
+    acqParametersLimits: limits,
     beamline: state.beamline,
     use_permitted_rotation: selector(state, 'use_permitted_rotation'),
     use_aimed_resolution: selector(state, 'use_aimed_resolution'),

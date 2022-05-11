@@ -6,13 +6,29 @@ import "react-contexify/dist/ReactContexify.css";
 
 const fabric = window.fabric;
 
-const MyMenu = (props) => {
+const ChipContextMenu = (props) => {
   return (
-    <Menu  id="test">
-      <Item></Item>
+    <Menu  id="chip-context-menu">
+      <li role="heading" aria-level="2" className="dropdown-header">
+        <b>
+          Chip
+        </b>
+      </li>
       <Separator />
-      <Item>Move to</Item>
-      <Item>Add to queue</Item>
+      <Item
+        id="moveto"
+        data={{}}
+        onClick={props.onMoveTo}
+      >
+        Move to
+      </Item>
+      <Item
+        id="addtask"
+        data={{}}
+        onClick={props.onAddTask}
+      >
+        Add to queue
+      </Item>
     </Menu>
   );
 }
@@ -26,14 +42,17 @@ export default class SSXChip extends React.Component {
     this.detailCanvas = null
   }
 
-  showContextMenu(event) {
+  showContextMenu(event, selection) {
     contextMenu.show({
-      id: "test",
+      id: "chip-context-menu",
       event: event.e,
+      position: {
+        x: event.e.offsetX + 15,
+        y: event.e.offsetY + 55,
+      },
       props: {
-        key: "value1",
-        foo: false
-      }
+        selection: selection
+      },
     });
   }
 
@@ -130,20 +149,22 @@ export default class SSXChip extends React.Component {
 
     this.fc.on('mouse:down', (event) => {
       const object = canvas.findTarget(event.e);
-      console.log(object.type);
 
-      if(event.button === 1) {
-          console.log("left click");
-      }
-      if(event.button === 2) {
-          console.log("middle click");
-      }
       if(event.button === 3) {
-          console.log("right click");
-          if (object.type === "BLOCK" || object.type==="activeSelection") {
+          let selection = [];
+
+          if (object.type === "BLOCK") {
+            selection.push([object.objectIndex]);
+          }
+
+          if (object.type === "activeSelection") {
+            selection = object._objects.map((o) => o.objectIndex);
+          }
+
+          if (selection.length > 0) {
             this.fc.setActiveObject(object);
             this.fc.requestRenderAll();
-            this.showContextMenu(event);
+            this.showContextMenu(event, selection);
           }
       }
     });
@@ -191,7 +212,7 @@ export default class SSXChip extends React.Component {
             id="chip-canvas" 
             ref={this.canvasRef}
           />
-          <MyMenu/>
+          <ChipContextMenu {...this.props}/>
         </div>
         <div className="chip-detial-canvas-container">
           <canvas

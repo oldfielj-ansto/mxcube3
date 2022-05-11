@@ -11,6 +11,8 @@ import GphlWorkflow from '../components/Tasks/GphlWorkflow';
 import Interleaved from '../components/Tasks/Interleaved';
 import XRFScan from '../components/Tasks/XRFScan';
 import EnergyScan from '../components/Tasks/EnergyScan';
+import GenericTaskForm from '../components/Tasks/GenericTaskForm';
+
 import {
   hideTaskParametersForm,
   showTaskForm,
@@ -121,9 +123,7 @@ class TaskContainer extends React.Component {
           resetTaskParameters={this.props.resetTaskParameters}
         />
       );
-    }
-
-    if (this.props.showForm === 'DataCollection') {
+    } else if (this.props.showForm === 'DataCollection') {
       return (
         <DataCollection
           show
@@ -136,12 +136,11 @@ class TaskContainer extends React.Component {
           attributes={this.props.attributes}
           initialParameters={this.props.initialParameters}
           resetTaskParameters={this.props.resetTaskParameters}
+          defaultParameters={this.props.defaultParameters}
           taskResult={this.props.taskResult}
         />
       );
-    }
-
-    if (this.props.showForm === 'Helical') {
+    } else if (this.props.showForm === 'Helical') {
       return (
         <Helical
           show
@@ -158,9 +157,7 @@ class TaskContainer extends React.Component {
           resetTaskParameters={this.props.resetTaskParameters}
         />
       );
-    }
-
-    if (this.props.showForm === 'Mesh') {
+    } else if (this.props.showForm === 'Mesh') {
       return (
         <Mesh
           show
@@ -176,9 +173,7 @@ class TaskContainer extends React.Component {
           resetTaskParameters={this.props.resetTaskParameters}
         />
       );
-    }
-
-    if (this.props.showForm === 'AddSample') {
+    } else if (this.props.showForm === 'AddSample') {
       return (
         <AddSample
           show
@@ -187,9 +182,7 @@ class TaskContainer extends React.Component {
           addAndMount={this.addSampleAndMount}
         />
       );
-    }
-
-    if (this.props.showForm === 'Workflow') {
+    } else if (this.props.showForm === 'Workflow') {
       return (
         <Workflow
           show
@@ -201,9 +194,7 @@ class TaskContainer extends React.Component {
           rootPath={this.props.path}
         />
       );
-    }
-
-    if (this.props.showForm === 'GphlWorkflow') {
+    } else if (this.props.showForm === 'GphlWorkflow') {
       return (
         <GphlWorkflow
           show
@@ -215,9 +206,7 @@ class TaskContainer extends React.Component {
           rootPath={this.props.path}
         />
       );
-    }
-
-    if (this.props.showForm === 'Interleaved') {
+    } else if (this.props.showForm === 'Interleaved') {
       return (
         <Interleaved
           show
@@ -228,9 +217,7 @@ class TaskContainer extends React.Component {
           rootPath={this.props.path}
         />
       );
-    }
-
-    if (this.props.showForm === 'XRFScan') {
+    } else if (this.props.showForm === 'XRF') {
       return (
         <XRFScan
           show
@@ -242,11 +229,22 @@ class TaskContainer extends React.Component {
           rootPath={this.props.path}
         />
       );
-    }
-
-    if (this.props.showForm === 'EnergyScan') {
+    } else if (this.props.showForm === 'Energy') {
       return (
         <EnergyScan
+          show
+          addTask={this.addTask}
+          pointID={this.props.pointID}
+          taskData={this.props.taskData}
+          hide={this.props.hideTaskParametersForm}
+          apertureList={this.props.apertureList}
+          availableElements={this.props.beamline.energyScanElements}
+          rootPath={this.props.path}
+        />
+      );
+    } else if (this.props.showForm === 'Generic') {
+      return (
+        <GenericTaskForm
           show
           addTask={this.addTask}
           pointID={this.props.pointID}
@@ -278,6 +276,7 @@ function mapStateToProps(state) {
     shapes: state.shapes.shapes,
     attributes: state.beamline.attributes,
     initialParameters: state.taskForm.initialParameters,
+    defaultParameters: state.taskForm.defaultParameters,
     taskResult: state.taskResult,
   };
 }

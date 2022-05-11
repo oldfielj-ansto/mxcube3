@@ -4,17 +4,15 @@ import { reduxForm, formValueSelector } from 'redux-form';
 import { DraggableModal } from '../DraggableModal';
 import { Modal, Button, Form, Row, Col, ButtonToolbar } from 'react-bootstrap';
 import validate from './validate';
-import { FieldsHeader, StaticField, InputField } from './fields';
-import PeriodicTable from '../PeriodicTable/PeriodicTable';
+import { StaticField, InputField } from './fields';
 
-class EnergyScan extends React.Component {
+class XRFScan extends React.Component {
   constructor(props) {
     super(props);
 
     this.submitAddToQueue = this.submitAddToQueue.bind(this);
     this.submitRunNow = this.submitRunNow.bind(this);
     this.addToQueue = this.addToQueue.bind(this);
-    this.elementSelected = this.elementSelected.bind(this);
   }
 
   submitAddToQueue() {
@@ -28,7 +26,7 @@ class EnergyScan extends React.Component {
   addToQueue(runNow, params) {
     const parameters = {
       ...params,
-      type: 'EnergyScan',
+      type: 'XRFScan',
       label: params.wfname,
       shape: this.props.pointID,
       suffix: this.props.suffix
@@ -44,36 +42,17 @@ class EnergyScan extends React.Component {
       'label',
       'wfname',
       'wfpath',
-      'suffix',
-      'element',
-      'edge'
+      'suffix'
     ];
 
     this.props.addTask(parameters, stringFields, runNow);
     this.props.hide();
   }
 
-  elementSelected(el) {
-    this.props.change('element', el);
-    let edge = '';
-
-    this.props.availableElements.forEach((item) => {
-      if (item.symbol === el) {
-        edge = item.energy;
-      }
-    });
-
-    this.props.change('edge', edge);
-  }
-
   render() {
-    const availableElements = this.props.availableElements.map((item) => (
-      item.symbol
-    ));
-
     return (<DraggableModal show={this.props.show} onHide={this.props.hide}>
         <Modal.Header closeButton>
-          <Modal.Title>Energy Scan</Modal.Title>
+          <Modal.Title>XRF</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -83,7 +62,7 @@ class EnergyScan extends React.Component {
               <InputField propName="subdir" label="Subdirectory" col1="4" col2="7" />
             </Row>
             <Row className='mt-3'>
-              <InputField propName="prefix" label="Prefix" col1={4} col2={7} />
+              <InputField propName="prefix" label="Prefix" col1="4" col2="7" />
             </Row>
             <Row className='mt-3'>
               {this.props.taskData.sampleID ?
@@ -97,16 +76,27 @@ class EnergyScan extends React.Component {
                   />)
                 : null}
             </Row>
-            <FieldsHeader title="Element" />
-            <PeriodicTable
-              availableElements={availableElements}
-              onElementSelected={this.elementSelected}
-            />
-            <Row className='mt-3 d-flex'>
-              <InputField propName="element" label="Element" col1="4" col2="2" />
-            </Row>
-            <Row className='mb-2 mt-3 d-flex'>
-              <InputField propName="edge" label="Edge" col1="4" col2="2" />
+<<<<<<< 95f52116e0fc6918004e911d5bde5bd1ad2c323e
+            <Row className='mt-3'>
+              <InputField
+                propName="countTime"
+                type="number"
+                label="Count time (s)"
+                col1="4"
+                col2="2"
+              />
+=======
+            <Row>
+              <Col xs={12} style={{ marginTop: '10px' }}>
+                <InputField
+                  propName="exp_time"
+                  type="number"
+                  label="Count time (s)"
+                  col1="4"
+                  col2="2"
+                />
+              </Col>
+>>>>>>> SSX Features
             </Row>
           </Form>
        </Modal.Body>
@@ -120,7 +110,7 @@ class EnergyScan extends React.Component {
                >
                  Run Now
                </Button>
-               <Button className='ms-3' variant="outline-secondary" disabled={this.props.invalid}
+               <Button className='ms-3' variant="primary" disabled={this.props.invalid}
                  onClick={this.submitAddToQueue}
                >
                  {this.props.taskData.sampleID ? 'Change' : 'Add to Queue'}
@@ -132,17 +122,16 @@ class EnergyScan extends React.Component {
   }
 }
 
-EnergyScan = reduxForm({
+XRFScan = reduxForm({
   form: 'workflow',
   validate
-})(EnergyScan);
+})(XRFScan);
 
 const selector = formValueSelector('workflow');
 
-EnergyScan = connect(state => {
+XRFScan = connect(state => {
   const subdir = selector(state, 'subdir');
-  const element = selector(state, 'element');
-  const edge = selector(state, 'edge');
+  const exp_time = selector(state, 'exp_time');
   const fileSuffix = state.taskForm.fileSuffix === 'h5' ? '_master.h5' : 'cbf';
   let position = state.taskForm.pointID === '' ? 'PX' : state.taskForm.pointID;
   if (typeof position === 'object') {
@@ -156,8 +145,7 @@ EnergyScan = connect(state => {
   return {
     path: `${state.login.rootPath}/${subdir}`,
     filename: state.taskForm.taskData.parameters.fileName,
-    edge,
-    element,
+    exp_time,
     wfname: state.taskForm.taskData.parameters.wfname,
     acqParametersLimits: limits,
     suffix: fileSuffix,
@@ -175,6 +163,6 @@ EnergyScan = connect(state => {
         state.beamline.attributes.transmission.value)
     }
   };
-})(EnergyScan);
+})(XRFScan);
 
-export default EnergyScan;
+export default XRFScan;
